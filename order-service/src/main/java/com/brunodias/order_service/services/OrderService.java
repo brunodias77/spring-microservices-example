@@ -1,5 +1,6 @@
 package com.brunodias.order_service.services;
 
+import com.brunodias.order_service.clients.StockClient;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -16,13 +17,20 @@ import java.util.UUID;
 @Slf4j
 public class OrderService {
     private final OrderRepository orderRepository;
+    private final StockClient stockClient;
 
     public void placeOrder(OrderRequest orderRequest) {
-        Order order = new Order();
-        order.setOrderNumber(UUID.randomUUID().toString());
-        order.setPrice(orderRequest.price());
-        order.setSkuCode(orderRequest.skuCode());
-        order.setQuantity(orderRequest.quantity());
-        orderRepository.save(order);
+        var isProductInStock = stockClient.isInStock(orderRequest.skuCode(), orderRequest.quantity());
+        if (isProductInStock) {
+            Order order = new Order();
+            order.setOrderNumber(UUID.randomUUID().toString());
+            order.setPrice(orderRequest.price());
+            order.setSkuCode(orderRequest.skuCode());
+            order.setQuantity(orderRequest.quantity());
+            orderRepository.save(order);
+        } else {
+            throw new RuntimeException(
+                    "Produto com o SkuCode " + orderRequest.skuCode() + "esta com o estoque esgotado");
+        }
     }
 }

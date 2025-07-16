@@ -38,3 +38,5 @@ hs_err_pid*
 
 # Ignore mysql data for order-service
 order-service/mysql/
+stock-service/mysql/
+
